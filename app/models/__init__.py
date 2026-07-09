@@ -1,0 +1,6 @@
+# Import all models here so Alembic can detect them on autogenerate
+from app.models.user import User
+from app.models.linkedin_account import LinkedInAccount
+from app.models.post import Post, PostStatus, PostTone
+
+__all__ = ["User", "LinkedInAccount", "Post", "PostStatus", "PostTone"]
