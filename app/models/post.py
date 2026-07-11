@@ -77,5 +77,7 @@ class Post(Base):
         "LinkedInAccount", back_populates="posts"
     )
 
+    analytics:Mapped['Analytics'] = relationship("PostAnalytics", back_populates="post", uselist=False)
+
     def __repr__(self) -> str:
         return f"<Post id={self.id} status={self.status} scheduled_at={self.scheduled_at}>"
