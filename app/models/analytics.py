@@ -13,7 +13,6 @@ class PostAnalytics(Base):
     shares = Column(Integer, default=0)
     impressions = Column(Integer, default=0)
     captured_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-
     post = relationship("Post", back_populates="analytics")
 
 
