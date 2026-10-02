@@ -3,14 +3,14 @@ from sqlalchemy.orm import DeclarativeBase
 
 from app.core.config import settings
 
-# Async engine — connects to PostgreSQL using asyncpg driver
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=settings.DEBUG,       # Log SQL queries in dev
-    pool_pre_ping=True,        # Verify connections before use
-    pool_size=10,
-    max_overflow=20,
-)
+engine_options = {
+    "echo": settings.DEBUG,
+    "pool_pre_ping": True,
+}
+if not settings.DATABASE_URL.startswith("sqlite+"):
+    engine_options.update(pool_size=10, max_overflow=20)
+
+engine = create_async_engine(settings.DATABASE_URL, **engine_options)
 
 # Session factory
 AsyncSessionLocal = async_sessionmaker(
