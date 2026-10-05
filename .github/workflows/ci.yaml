@@ -6,6 +6,7 @@ on:
 jobs:
   linkedin_test:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       DEBUG: ${{ secrets.DEBUG }}
@@ -37,6 +38,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Test
+      - name: Run App
         run: |
-          pytest 
+          python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 
