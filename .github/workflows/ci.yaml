@@ -21,7 +21,6 @@ jobs:
       SECRET_KEY: ${ { secrets.SECRET_KEY } }
       OOPENROUTER_BASE_URL: ${ { secrets.OPENROUTER_BASE_URL } }
       AI_MODEL: ${ { secrets.AI_MODEL } }
-      SECRET_KEY: ${ { secrets.SECRET_KEY } }
       APP_ENV: ${ { secrets.APP_ENV } }
       APP_NAME: ${ { secrets.APP_NAME } }
     steps:
