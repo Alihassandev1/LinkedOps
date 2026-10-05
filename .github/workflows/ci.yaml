@@ -7,22 +7,22 @@ jobs:
   linkedin_test:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: ${ { secrets.DATABASE_URL } }
-      DEBUG: ${ { secrets.DEBUG } }
-      JWT_SECRET_KEY: ${ { secrets.JWT_SECRET_KEY } }
-      JWT_ALGORITHM: ${ { secrets.JWT_ALGORITHM } }
-      ACCESS_TOKEN_EXPIRE_MINUTES: ${ { secrets.ACCESS_TOKEN_EXPIRE_MINUTES } }
-      REFRESH_TOKEN_EXPIRE_DAYS: ${ { secrets.REFRESH_TOKEN_EXPIRE_DAYS } }
-      LINKEDIN_CLIENT_ID: ${ { secrets.LINKEDIN_CLIENT_ID } }
-      LINKEDIN_CLIENT_SECRET: ${ { secrets.LINKEDIN_CLIENT_SECRET } }
-      LINKEDIN_REDIRECT_URI: ${ { secrets.LINKEDIN_REDIRECT_URI } }
-      OPENROUTER_API_KEY: ${ { secrets.OPENROUTER_API_KEY } }
-      FERNET_KEY: ${ { secrets.FERNET_KEY } }
-      SECRET_KEY: ${ { secrets.SECRET_KEY } }
-      OOPENROUTER_BASE_URL: ${ { secrets.OPENROUTER_BASE_URL } }
-      AI_MODEL: ${ { secrets.AI_MODEL } }
-      APP_ENV: ${ { secrets.APP_ENV } }
-      APP_NAME: ${ { secrets.APP_NAME } }
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DEBUG: ${{ secrets.DEBUG }}
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+      JWT_ALGORITHM: ${{ secrets.JWT_ALGORITHM }}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}
+      LINKEDIN_CLIENT_ID: ${{ secrets.LINKEDIN_CLIENT_ID }}
+      LINKEDIN_CLIENT_SECRET: ${{ secrets.LINKEDIN_CLIENT_SECRET }}
+      LINKEDIN_REDIRECT_URI: ${{ secrets.LINKEDIN_REDIRECT_URI }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      FERNET_KEY: ${{ secrets.FERNET_KEY }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      OOPENROUTER_BASE_URL: ${{ secrets.OPENROUTER_BASE_URL }}
+      AI_MODEL: ${{ secrets.AI_MODEL }}
+      APP_ENV: ${{ secrets.APP_ENV }}
+      APP_NAME: ${{ secrets.APP_NAME }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
