@@ -46,7 +46,7 @@ jobs:
           echo "Waiting for FastAPI..."
       
           for i in {1..30}; do
-            if curl --silent --fail http://localhost:8000 > /dev/null; then
+            if curl --silent --fail http://localhost:8000/docs > /dev/null; then
               echo "FastAPI is running!"
               break
             fi
@@ -60,6 +60,6 @@ jobs:
             sleep 1
           done
       
-          curl --fail http://localhost:8000
+          curl --fail http://localhost:8000/docs
       
           kill $APP_PID
