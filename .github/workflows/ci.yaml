@@ -40,6 +40,26 @@ jobs:
 
       - name: Run App
         run: |
-          python -m uvicorn app.main:app --host 0.0.0.0 --port 8000  &
-          sleep 5
+          python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &
+          APP_PID=$!
+      
+          echo "Waiting for FastAPI..."
+      
+          for i in {1..30}; do
+            if curl --silent --fail http://localhost:8000 > /dev/null; then
+              echo "FastAPI is running!"
+              break
+            fi
+      
+            if ! kill -0 $APP_PID 2>/dev/null; then
+              echo "FastAPI crashed!"
+              cat uvicorn.log
+              exit 1
+            fi
+      
+            sleep 1
+          done
+      
           curl --fail http://localhost:8000
+      
+          kill $APP_PID
