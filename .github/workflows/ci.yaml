@@ -63,3 +63,19 @@ jobs:
           curl --fail http://localhost:8000/docs
       
           kill $APP_PID
+            
+      - name: DockerHub Login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Tag the Image
+        run: |
+          docker tag linkedops:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/linkedops:latest
+          docker tag linkedops:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/linkedops:${{ github.sha }}
+
+      - name: Push the Image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/linkedops:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/linkedops:${{ github.sha }}
