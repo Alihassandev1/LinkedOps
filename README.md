@@ -1,174 +1,303 @@
-# LinkedOps — Backend
+# LinkedOps
 
-FastAPI + PostgreSQL backend for the LinkedIn automation platform.
+FastAPI backend for scheduling, publishing, and managing LinkedIn content. It provides JWT authentication, LinkedIn OAuth, AI-assisted post generation, background publishing, analytics, and Docker-based deployment.
 
----
+## Technology Stack
 
-## Stack
-- **FastAPI** — async web framework
-- **SQLAlchemy 2.0** — async ORM
-- **PostgreSQL** — primary database (via asyncpg)
-- **Alembic** — database migrations
-- **python-jose** — JWT auth
-- **passlib[bcrypt]** — password hashing
-- **cryptography (Fernet)** — LinkedIn token encryption
-- **APScheduler** — background post scheduler (next phase)
-- **httpx** — async LinkedIn API calls (next phase)
+- Python 3.11+
+- FastAPI and Uvicorn
+- SQLAlchemy 2.0 with async PostgreSQL support
+- Alembic database migrations
+- PostgreSQL and AsyncPG
+- JWT authentication with Python-JOSE and bcrypt
+- Fernet-encrypted LinkedIn OAuth tokens
+- APScheduler background jobs
+- OpenRouter/OpenAI-compatible AI client
+- Pydantic settings and environment-based configuration
 
----
+## Requirements
 
-## Local Setup
+- Python 3.11 or newer
+- PostgreSQL 16 or compatible
+- Docker and Docker Compose for containerized deployment
+- A LinkedIn Developer App with OAuth credentials
+- An OpenRouter API key for AI features
 
-### 1. Prerequisites
+## Local Development
+
+### 1. Create and activate a virtual environment
+
 ```bash
-# Install PostgreSQL (macOS)
-brew install postgresql@16 && brew services start postgresql@16
+python -m venv .venv
 
-# Install PostgreSQL (Ubuntu/WSL)
-sudo apt install postgresql postgresql-contrib -y
-sudo service postgresql start
+# Linux/macOS
+source .venv/bin/activate
+
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
 ```
 
-### 2. Create the database
-```bash
-psql -U postgres
-CREATE DATABASE linkedops;
-\q
-```
+### 2. Install dependencies
 
-### 3. Clone & set up Python environment
 ```bash
-cd linkedops-backend
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4. Configure environment
+The project also defines an optional test dependency group in `pyproject.toml`.
+
+### 3. Configure environment variables
+
+Copy the example file and update the values:
+
 ```bash
-cp .env.example .env
-# Edit .env and fill in:
-#   DATABASE_URL, JWT_SECRET_KEY, FERNET_KEY
-#   (LinkedIn + OpenRouter keys can be added later)
+Copy-Item .env.example .env
 ```
 
-#### Generate required secret keys:
-```bash
-# JWT secret (just a long random string)
-python -c "import secrets; print(secrets.token_hex(32))"
+The required settings are:
 
-# Fernet key (for encrypting LinkedIn tokens)
+```env
+APP_NAME=LinkedOps
+APP_ENV=development
+DEBUG=true
+FRONTEND_URL=http://localhost:5173
+
+DATABASE_URL=postgresql+asyncpg://postgres:password@localhost:5432/linkedops
+
+JWT_SECRET_KEY=replace-with-a-long-random-secret
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_TOKEN_EXPIRE_DAYS=7
+
+LINKEDIN_CLIENT_ID=your_linkedin_client_id
+LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
+LINKEDIN_REDIRECT_URI=http://localhost:8000/api/v1/linkedin/callback
+
+OPENROUTER_API_KEY=your_openrouter_api_key
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+AI_MODEL=mistralai/mistral-7b-instruct
+
+FERNET_KEY=your_fernet_key
+```
+
+Generate a Fernet key with:
+
+```bash
 python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 ```
 
-### 5. Run database migrations
+### 4. Prepare PostgreSQL
+
+Create the database referenced by `DATABASE_URL`:
+
+```sql
+CREATE DATABASE linkedops;
+```
+
+The application creates database tables automatically during startup in development. For a managed migration workflow, use Alembic commands such as:
+
 ```bash
-# For local dev, tables auto-create on startup via SQLAlchemy.
-# When you want proper migrations:
 alembic revision --autogenerate -m "initial tables"
 alembic upgrade head
 ```
 
-### 6. Start the server
+### 5. Start the API
+
 ```bash
 uvicorn app.main:app --reload --port 8000
 ```
 
-Server runs at: http://localhost:8000  
-API docs at:    http://localhost:8000/docs
+- API: http://localhost:8000
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+- Health check: http://localhost:8000/health
 
----
+## Docker
 
-## Project Structure
-```
-linkedops/
-├── app/
-│   ├── main.py                  # FastAPI app factory
-│   ├── api/
-│   │   └── v1/
-│   │       ├── router.py        # Aggregates all routers
-│   │       └── endpoints/
-│   │           ├── auth.py      # /api/v1/auth/*
-│   │           └── posts.py     # /api/v1/posts/*
-│   ├── core/
-│   │   ├── config.py            # Settings from .env
-│   │   ├── security.py          # JWT, bcrypt, Fernet
-│   │   └── deps.py              # FastAPI dependencies
-│   ├── db/
-│   │   └── session.py           # Async engine + Base
-│   ├── models/
-│   │   ├── user.py              # User table
-│   │   ├── linkedin_account.py  # LinkedIn OAuth accounts
-│   │   └── post.py              # Scheduled/published posts
-│   ├── schemas/
-│   │   ├── auth.py              # Register/login/token schemas
-│   │   └── post.py              # Post CRUD + AI schemas
-│   └── services/
-│       ├── user_service.py      # User DB queries
-│       └── auth_service.py      # Register/login/refresh logic
-├── alembic/                     # DB migrations
-├── tests/
-│   └── test_auth.py
-├── .env.example
-├── requirements.txt
-└── README.md
+Build and run the image with Docker Compose:
+
+```bash
+Copy-Item .env.example .env
+
+docker compose build
+docker compose up -d
 ```
 
----
+The Compose service maps port `8000` and loads environment variables from `.env`.
+
+Build the image directly:
+
+```bash
+docker build -t linkedops:latest .
+```
+
+The production Docker image uses Python 3.11, runs as a non-root user, exposes port 8000, and includes a health check against `/health`.
 
 ## API Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/v1/auth/register` | ❌ | Create account |
-| POST | `/api/v1/auth/login` | ❌ | Login, get tokens |
-| POST | `/api/v1/auth/refresh` | ❌ | Refresh access token |
-| GET | `/api/v1/auth/me` | ✅ | Get current user |
-| POST | `/api/v1/posts/` | ✅ | Create post |
-| GET | `/api/v1/posts/` | ✅ | List all posts |
-| GET | `/api/v1/posts/{id}` | ✅ | Get single post |
-| PATCH | `/api/v1/posts/{id}` | ✅ | Update post |
-| DELETE | `/api/v1/posts/{id}` | ✅ | Delete post |
-| GET | `/api/v1/linkedin/connect` | ✅ | Get LinkedIn OAuth URL |
-| GET | `/api/v1/linkedin/callback` | ❌ | OAuth callback (LinkedIn redirects here) |
-| GET | `/api/v1/linkedin/accounts` | ✅ | List connected accounts |
-| DELETE | `/api/v1/linkedin/accounts/{id}` | ✅ | Disconnect an account |
-| PATCH | `/api/v1/linkedin/accounts/{id}/default` | ✅ | Set default account |
-| POST | `/api/v1/ai/generate` | ✅ | Generate new post from topic |
-| POST | `/api/v1/ai/enhance` | ✅ | Polish an existing draft |
-| POST | `/api/v1/ai/regenerate` | ✅ | New variation of a topic |
-| GET | `/api/v1/scheduler/status` | ✅ | View background job status |
-| POST | `/api/v1/scheduler/trigger/{job_id}` | ✅ | Manually fire a job (dev/debug) |
-| GET | `/health` | ❌ | Health check |
+### Authentication
 
----
+| Method | Endpoint                | Authentication | Description                                           |
+| ------ | ----------------------- | -------------- | ----------------------------------------------------- |
+| POST   | `/api/v1/auth/register` | No             | Register a user and receive access and refresh tokens |
+| POST   | `/api/v1/auth/login`    | No             | Log in with JSON or OAuth2-style form data            |
+| POST   | `/api/v1/auth/refresh`  | No             | Exchange a refresh token for a new token pair         |
+| GET    | `/api/v1/auth/me`       | Bearer token   | Return the current authenticated user                 |
 
-## Background Jobs (Phase 4)
+### Posts
 
-LinkedOps runs two scheduled jobs via APScheduler, in the same process as FastAPI:
+| Method | Endpoint                  | Authentication | Description                               |
+| ------ | ------------------------- | -------------- | ----------------------------------------- |
+| POST   | `/api/v1/posts/`          | Bearer token   | Create a draft or scheduled post          |
+| GET    | `/api/v1/posts/`          | Bearer token   | List posts, optionally filtered by status |
+| GET    | `/api/v1/posts/{post_id}` | Bearer token   | Get one post                              |
+| PATCH  | `/api/v1/posts/{post_id}` | Bearer token   | Update a draft or scheduled post          |
+| DELETE | `/api/v1/posts/{post_id}` | Bearer token   | Delete a non-published post               |
 
-| Job | Frequency | What it does |
-|-----|-----------|---------------|
-| `publish_due_posts` | Every 1 minute | Finds posts where `status=scheduled` and `scheduled_at <= now`, publishes them to LinkedIn via the UGC Posts API. Retries up to 3 times on failure before marking `failed`. |
-| `refresh_expiring_tokens` | Daily at 3:00 AM UTC | Finds LinkedIn accounts whose tokens expire within 7 days, refreshes them silently using the stored refresh token. |
+Post creation accepts `content`, optional `scheduled_at`, optional `linkedin_account_id`, and an `ai_enhanced` flag. If `scheduled_at` is provided, the post is created as `scheduled`; otherwise it is created as `draft`.
 
-**Testing the publisher without waiting:**
+### LinkedIn
+
+| Method | Endpoint                                         | Authentication | Description                            |
+| ------ | ------------------------------------------------ | -------------- | -------------------------------------- |
+| GET    | `/api/v1/linkedin/connect`                       | Bearer token   | Return a LinkedIn authorization URL    |
+| GET    | `/api/v1/linkedin/callback`                      | No             | Finish OAuth and redirect the frontend |
+| GET    | `/api/v1/linkedin/accounts`                      | Bearer token   | List the user's connected accounts     |
+| DELETE | `/api/v1/linkedin/accounts/{account_id}`         | Bearer token   | Disconnect an account                  |
+| PATCH  | `/api/v1/linkedin/accounts/{account_id}/default` | Bearer token   | Set the default posting account        |
+
+The callback validates the OAuth state, exchanges the authorization code for tokens, fetches the LinkedIn profile, encrypts the stored tokens, and redirects to `FRONTEND_URL` with a connection result.
+
+### AI Content
+
+| Method | Endpoint                | Authentication | Description                            |
+| ------ | ----------------------- | -------------- | -------------------------------------- |
+| POST   | `/api/v1/ai/generate`   | Bearer token   | Generate a post from a topic           |
+| POST   | `/api/v1/ai/enhance`    | Bearer token   | Improve an existing draft              |
+| POST   | `/api/v1/ai/regenerate` | Bearer token   | Create a variation of a previous topic |
+
+The AI endpoints consume one AI credit per call. The current service implementation expects an OpenRouter-compatible API and returns the generated content, tone, and character count.
+
+### Scheduler
+
+| Method | Endpoint                             | Authentication | Description                                    |
+| ------ | ------------------------------------ | -------------- | ---------------------------------------------- |
+| GET    | `/api/v1/scheduler/status`           | Bearer token   | Return registered jobs and their next run time |
+| POST   | `/api/v1/scheduler/trigger/{job_id}` | Bearer token   | Manually run a scheduler job immediately       |
+
+Available job IDs are `publish_due_posts` and `refresh_expiring_tokens`.
+
+### Analytics
+
+| Method | Endpoint                     | Authentication | Description                                             |
+| ------ | ---------------------------- | -------------- | ------------------------------------------------------- |
+| GET    | `/api/v1/analytics/overview` | Bearer token   | Return post performance, growth, and AI usage summaries |
+| GET    | `/api/v1/analytics/posts`    | Bearer token   | Return post performance records                         |
+| GET    | `/api/v1/analytics/growth`   | Bearer token   | Return account growth snapshots                         |
+| GET    | `/api/v1/analytics/ai-usage` | Bearer token   | Return AI generation statistics                         |
+
+### Health
+
+| Method | Endpoint  | Authentication | Description                          |
+| ------ | --------- | -------------- | ------------------------------------ |
+| GET    | `/health` | No             | Return the application health status |
+
+## Background Jobs
+
+The application starts two APScheduler jobs when `APP_ENV` is not `test`:
+
+| Job                       | Schedule             | Behavior                                                                                                                                                                |
+| ------------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `publish_due_posts`       | Every minute         | Finds `scheduled` posts whose `scheduled_at` has arrived, publishes them through LinkedIn, retries up to three times, and marks failed posts when retries are exhausted |
+| `refresh_expiring_tokens` | Daily at 3:00 AM UTC | Refreshes LinkedIn accounts whose tokens expire within seven days                                                                                                       |
+
+To trigger a job without waiting for its schedule:
+
 ```bash
-# After scheduling a test post, trigger the job immediately instead of waiting up to 60s:
 curl -X POST http://localhost:8000/api/v1/scheduler/trigger/publish_due_posts \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
-**Important:** when running tests, set `APP_ENV=test` — this disables the scheduler
-so background jobs don't fire against your test database mid-suite.
+During tests, set `APP_ENV=test` to disable scheduler startup.
+
+## Testing
+
+Install the optional test dependencies and run the suite:
 
 ```bash
+pip install -e ".[test]"
 APP_ENV=test pytest tests/ -v
 ```
 
----
+The test environment uses an in-memory SQLite database and applies the SQLAlchemy metadata before each test. The included health tests verify that the Swagger documentation is available and that unknown routes return HTTP 404.
 
-## Next Phases
-- **Phase 5:** Analytics endpoints (impressions, engagement, top posts)
-- **Phase 6:** Subscription & billing (Paddle integration, plan limits)
-- **Phase 7:** Email notifications (Resend — post published, post failed, weekly digest)
+## CI and Publishing
+
+The GitHub Actions workflow runs on pushes and pull requests to `main` and uses Python 3.11. It:
+
+1. Installs dependencies.
+2. Starts the FastAPI application.
+3. Waits for `/docs` to become available.
+4. Builds and pushes Docker images to Docker Hub and GitHub Container Registry.
+
+Required repository secrets include:
+
+- `DATABASE_URL`
+- `DEBUG`
+- `JWT_SECRET_KEY`
+- `JWT_ALGORITHM`
+- `ACCESS_TOKEN_EXPIRE_MINUTES`
+- `REFRESH_TOKEN_EXPIRE_DAYS`
+- `LINKEDIN_CLIENT_ID`
+- `LINKEDIN_CLIENT_SECRET`
+- `LINKEDIN_REDIRECT_URI`
+- `OPENROUTER_API_KEY`
+- `FERNET_KEY`
+- `DOCKER_USERNAME`
+- `DOCKER_PASSWORD`
+- `GITHUB_TOKEN`
+
+The workflow does not require a secret named `SECRET_KEY`; configuration uses `JWT_SECRET_KEY` and the `FERNET_KEY` is supplied separately.
+
+## Project Structure
+
+```text
+.
+├── app/
+│   ├── api/v1/
+│   │   ├── endpoints/
+│   │   │   ├── ai.py
+│   │   │   ├── analytics.py
+│   │   │   ├── auth.py
+│   │   │   ├── linkedin.py
+│   │   │   ├── posts.py
+│   │   │   └── scheduler.py
+│   │   └── router.py
+│   ├── core/
+│   │   ├── config.py
+│   │   ├── deps.py
+│   │   ├── scheduler.py
+│   │   └── security.py
+│   ├── db/session.py
+│   ├── models/
+│   ├── schemas/
+│   └── services/
+├── alembic/
+├── tests/
+├── .env.example
+├── .dockerignore
+├── .github/workflows/ci.yaml
+├── alembic.ini
+├── Dockerfile
+├── docker-compose.yml
+├── pyproject.toml
+├── requirements.txt
+└── README.md
+```
+
+## Notes
+
+- The application uses `create_all()` during startup for local development convenience. For production, prefer running Alembic migrations explicitly.
+- The `APP_ENV=test` setting disables scheduler startup and uses the in-memory SQLite test database.
+- API documentation is enabled only when `DEBUG=true`.
+- OAuth callback URLs must be registered in the LinkedIn Developer App and must match the configured `LINKEDIN_REDIRECT_URI`.
