@@ -2,7 +2,7 @@ name: linkedin_test
 
 on:
   push:
-    branches: [main]
+    branches: [pipeline-test]
   pull_request:
     branches: [main]
   workflow_dispatch:
