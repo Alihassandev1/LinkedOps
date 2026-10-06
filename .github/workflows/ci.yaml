@@ -10,7 +10,6 @@ on:
 jobs:
   linkedin_test:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       DEBUG: ${{ secrets.DEBUG }}
@@ -90,3 +89,8 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/linkedops:latest
             ${{ secrets.DOCKER_USERNAME }}/linkedops:${{ github.sha }}
             ghcr.io/${{ github.repository }}:latest
+      
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: test-results
