@@ -214,8 +214,10 @@ The application starts two APScheduler jobs when `APP_ENV` is not `test`:
 To trigger a job without waiting for its schedule:
 
 ```bash
+export ACCESS_TOKEN="your-access-token"
+
 curl -X POST http://localhost:8000/api/v1/scheduler/trigger/publish_due_posts \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+  -H "Authorization: Bearer $ACCESS_TOKEN"
 ```
 
 During tests, set `APP_ENV=test` to disable scheduler startup.
