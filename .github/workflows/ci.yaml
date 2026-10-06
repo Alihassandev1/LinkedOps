@@ -93,5 +93,5 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/linkedops:latest
             ${{ secrets.DOCKER_USERNAME }}/linkedops:${{ github.sha }}
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/alihassandev1:latest
+            ghcr.io/alihassandev1:${{ github.sha }}
