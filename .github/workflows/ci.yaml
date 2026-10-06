@@ -10,6 +10,7 @@ on:
 jobs:
   linkedin_test:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       DEBUG: ${{ secrets.DEBUG }}
