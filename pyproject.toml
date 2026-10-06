@@ -1,0 +1,47 @@
+[project]
+name = "linkedops"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # Web framework
+    "fastapi==0.111.0",
+    "uvicorn[standard]==0.29.0",
+
+    # Database
+    "sqlalchemy==2.0.30",
+    "alembic==1.13.1",
+    "asyncpg==0.29.0",
+    "psycopg2-binary==2.9.10",
+
+    # Auth & Security
+    "python-jose[cryptography]==3.3.0",
+    "bcrypt==4.1.3",
+    "python-multipart==0.0.9",
+    "cryptography==42.0.7",
+
+    # Config
+    "pydantic==2.7.1",
+    "pydantic-settings==2.2.1",
+    "python-dotenv==1.0.1",
+
+    # HTTP client (LinkedIn API calls)
+    "httpx==0.27.0",
+
+    # Scheduling
+    "apscheduler==3.10.4",
+
+    # AI (OpenRouter)
+    "openai==1.30.1",
+
+    # Utilities
+    "python-dateutil==2.9.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "aiosqlite>=0.20,<1",
+    "pytest>=8.2,<9",
+    "pytest-asyncio>=0.23,<1",
+]

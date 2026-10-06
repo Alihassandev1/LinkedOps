@@ -1,0 +1,11 @@
+services:
+  web:
+    image: ghcr.io/alihassandev1/linkedops:latest
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env
+    networks:
+      - backend
+networks:
+  backend:
