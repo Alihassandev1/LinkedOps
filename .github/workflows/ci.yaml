@@ -67,8 +67,3 @@ jobs:
           curl --fail http://localhost:8000/docs
       
           kill $APP_PID
-
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: test-results
