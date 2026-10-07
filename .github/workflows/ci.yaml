@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 jobs:
-  linkedin_test:
+  build-and-push:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -98,3 +98,12 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/linkedops:${{ github.sha }}
             ghcr.io/alihassandev1/linkedops:latest
             ghcr.io/alihassandev1/linkedops:${{ github.sha }}
+  deploy:
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main'
+    runs-on: self-hosted
+    steps:
+      - name: Deploy
+        env:
+          TAG: ${{ github.sha }}
+        run: /home/alihassan/app/deploy.sh "$TAG"
