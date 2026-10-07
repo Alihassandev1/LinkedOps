@@ -103,7 +103,13 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: self-hosted
     steps:
-      - name: Deploy
-        env:
-          TAG: ${{ github.sha }}
-        run: /home/alihassan/app/deploy.sh "$TAG"
+      - name: login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: pull image from GHCR
+        uses: docker pull alihassandev1/linkedops:latest
+      - name: Show Image
+        uses: docker images alihassandev1/linkedops:latest
