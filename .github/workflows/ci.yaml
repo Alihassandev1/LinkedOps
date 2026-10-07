@@ -110,6 +110,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: pull image from GHCR
-        run: docker pull ghcr.io/alihassandev1/linkedops:latest
-      - name: Show Image
-        run: docker images ghcr.io/alihassandev1/linkedops:latest
+        run: docker compose pull
+      - name: deploy
+        run: docker compose up -d
+      - name: check Deployment
+        run: docker compose ps 
