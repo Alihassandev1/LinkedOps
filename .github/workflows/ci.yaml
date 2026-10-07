@@ -117,4 +117,5 @@ jobs:
         working-directory: /home/alihassan/app/linkedops
         run: docker compose up -d
       - name: check Deployment
+        working-directory: /home/alihassan/app/linkedops
         run: docker compose ps 
