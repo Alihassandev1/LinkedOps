@@ -98,24 +98,3 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/linkedops:${{ github.sha }}
             ghcr.io/alihassandev1/linkedops:latest
             ghcr.io/alihassandev1/linkedops:${{ github.sha }}
-  deploy:
-    needs: build-and-push
-    if: github.ref == 'refs/heads/main'
-    runs-on: self-hosted
-    steps:
-      - name: login to GHCR
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: pull image from GHCR
-        working-directory: /home/alihassan/app/linkedops
-        run: |
-          docker compose pull
-      - name: deploy
-        working-directory: /home/alihassan/app/linkedops
-        run: docker compose up -d
-      - name: check Deployment
-        working-directory: /home/alihassan/app/linkedops
-        run: docker compose ps 
